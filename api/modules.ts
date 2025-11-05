@@ -7,6 +7,7 @@ const moduleStates = new Map<string, boolean>();
 
 // Initialize default states
 moduleStates.set('autoSprint', false);
+moduleStates.set('flight', false);
 
 export default async function handler(
   req: VercelRequest,
