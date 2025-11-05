@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Client Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .status {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status.connected {
+            color: #10b981;
+        }
+
+        .status.disconnected {
+            color: #ef4444;
+        }
+
+        .module {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .module:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .module-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .module-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Minecraft Client</h1>
+        <p class="status" id="statusText">Connecting to API...</p>
+        
+        <div class="connection-status">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="connectionText">Checking connection...</span>
+        </div>
+
+        <div class="module">
+            <div class="module-info">
+                <h3>Auto Sprint</h3>
+                <p>Automatically sprint when moving</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="autoSprintToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="footer">
+            Private controlled project • Last updated: <span id="lastUpdate">Never</span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://your-app.vercel.app/api/modules';
+        let isConnected = false;
+
+        const autoSprintToggle = document.getElementById('autoSprintToggle');
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        const connectionText = document.getElementById('connectionText');
+        const lastUpdate = document.getElementById('lastUpdate');
+
+        // Update connection status display
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            if (connected) {
+                statusDot.classList.add('connected');
+                connectionText.textContent = 'Connected to API';
+                connectionText.style.color = '#10b981';
+            } else {
+                statusDot.classList.remove('connected');
+                connectionText.textContent = 'Disconnected';
+                connectionText.style.color = '#ef4444';
+            }
+        }
+
+        // Fetch current module state
+        async function fetchModuleState() {
+            try {
+                const response = await fetch(`${API_URL}?module=autoSprint`);
+                if (!response.ok) throw new Error('API request failed');
+                
+                const data = await response.json();
+                autoSprintToggle.checked = data.enabled;
+                statusText.textContent = `AutoSprint: ${data.enabled ? 'ON' : 'OFF'}`;
+                statusText.className = `status ${data.enabled ? 'connected' : 'disconnected'}`;
+                
+                updateConnectionStatus(true);
+                updateTimestamp();
+                
+                return data.enabled;
+            } catch (error) {
+                console.error('Failed to fetch module state:', error);
+                updateConnectionStatus(false);
+                return false;
+            }
+        }
+
+        // Toggle module state
+        async function toggleModule(moduleName, enabled) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        module: moduleName,
+                        enabled: enabled
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to toggle module');
+                
+                const data = await response.json();
+                statusText.textContent = data.message;
+                statusText.className = `status ${enabled ? 'connected' : 'disconnected'}`;
+                
+                updateConnectionStatus(true);
+                updateTimestamp();
+                
+                console.log('Module toggled:', data);
+            } catch (error) {
+                console.error('Failed to toggle module:', error);
+                // Revert toggle on failure
+                autoSprintToggle.checked = !enabled;
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            lastUpdate.textContent = now.toLocaleTimeString();
+        }
+
+        // Event listener for toggle
+        autoSprintToggle.addEventListener('change', (e) => {
+            toggleModule('autoSprint', e.target.checked);
+        });
+
+        // Initial fetch
+        fetchModuleState();
+
+        // Poll for updates every 5 seconds
+        setInterval(fetchModuleState, 5000);
+    </script>
+</body>
+</html>
