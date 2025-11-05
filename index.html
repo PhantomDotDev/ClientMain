@@ -183,6 +183,17 @@
             </label>
         </div>
 
+        <div class="module">
+            <div class="module-info">
+                <h3>Flight</h3>
+                <p>Flight!</p>
+            </div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="flightToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
         <div class="footer">
             Private controlled project • Last updated: <span id="lastUpdate">Never</span>
         </div>
@@ -193,6 +204,7 @@
         let isConnected = false;
 
         const autoSprintToggle = document.getElementById('autoSprintToggle');
+        const flightToggle = document.getElementById('flightToggle');
         const statusText = document.getElementById('statusText');
         const statusDot = document.getElementById('statusDot');
         const connectionText = document.getElementById('connectionText');
@@ -217,10 +229,15 @@
             try {
                 const response = await fetch(`${API_URL}?module=autoSprint`);
                 if (!response.ok) throw new Error('API request failed');
+
+                const response2 = await fetch(`${API_URL}?module=flight`);
+                if (!response2.ok) throw new Error('API request failed');
                 
                 const data = await response.json();
                 autoSprintToggle.checked = data.enabled;
                 statusText.textContent = `AutoSprint: ${data.enabled ? 'ON' : 'OFF'}`;
+                flightToggle.checked = data.enabled;
+                statusText.textContent = `flight: ${data.enabled ? 'ON' : 'OFF'}`;
                 statusText.className = `status ${data.enabled ? 'connected' : 'disconnected'}`;
                 
                 updateConnectionStatus(true);
@@ -275,6 +292,10 @@
         // Event listener for toggle
         autoSprintToggle.addEventListener('change', (e) => {
             toggleModule('autoSprint', e.target.checked);
+        });
+
+        flightToggle.addEventListener('change', (e) => {
+            toggleModule('flight', e.target.checked);
         });
 
         // Initial fetch
