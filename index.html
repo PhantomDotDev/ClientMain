@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Client Control</title>
+    <title>Wash Client Control</title>
     <style>
         * {
             margin: 0;
@@ -15,50 +15,86 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
 
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
+            padding: 30px;
+            margin-bottom: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         h1 {
             color: #333;
+            font-size: 32px;
             margin-bottom: 10px;
-            font-size: 28px;
         }
 
-        .status {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
         }
 
-        .status.connected {
-            color: #10b981;
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .status.disconnected {
-            color: #ef4444;
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .category {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
         }
 
         .module {
             background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
         }
 
         .module:hover {
@@ -66,21 +102,23 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .module-info h3 {
-            color: #333;
-            margin-bottom: 5px;
-            font-size: 18px;
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
         }
 
-        .module-info p {
-            color: #666;
-            font-size: 14px;
+        .module-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
         }
 
         .toggle-switch {
             position: relative;
-            width: 60px;
-            height: 34px;
+            width: 50px;
+            height: 28px;
         }
 
         .toggle-switch input {
@@ -104,8 +142,8 @@
         .slider:before {
             position: absolute;
             content: "";
-            height: 26px;
-            width: 26px;
+            height: 20px;
+            width: 20px;
             left: 4px;
             bottom: 4px;
             background-color: white;
@@ -118,170 +156,382 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(26px);
+            transform: translateX(22px);
         }
 
-        .connection-status {
+        .module-settings {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .module-settings.expanded {
+            max-height: 500px;
+        }
+
+        .setting {
+            background: white;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .setting-name {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .setting-control {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            padding: 12px;
-            background: #f8f9fa;
+            gap: 10px;
+        }
+
+        .setting-slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .setting-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .setting-value {
+            min-width: 40px;
+            text-align: right;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .expand-icon {
+            font-size: 12px;
+            color: #999;
+            transition: transform 0.3s;
+        }
+
+        .expand-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .stat {
+            background: #f0f4ff;
+            padding: 10px 20px;
             border-radius: 8px;
         }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ef4444;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.connected {
-            background: #10b981;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            color: #666;
+        .stat-label {
             font-size: 12px;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎮 Minecraft Client</h1>
-        <p class="status" id="statusText">Connecting to API...</p>
-        
-        <div class="connection-status">
-            <div class="status-dot" id="statusDot"></div>
-            <span id="connectionText">Checking connection...</span>
-        </div>
-
-        <div class="module">
-            <div class="module-info">
-                <h3>Auto Sprint</h3>
-                <p>Automatically sprint when moving</p>
+        <div class="header">
+            <h1>🎮 Wash Client Control Panel</h1>
+            <div class="status-bar">
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Connecting...</span>
+                </div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">Active Modules</div>
+                        <div class="stat-value" id="activeCount">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Total Modules</div>
+                        <div class="stat-value" id="totalCount">0</div>
+                    </div>
+                </div>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="autoSprintToggle">
-                <span class="slider"></span>
-            </label>
         </div>
 
-        <div class="footer">
-            Private controlled project • Last updated: <span id="lastUpdate">Never</span>
+        <div class="categories" id="categoriesContainer">
+            <!-- Categories will be dynamically inserted here -->
         </div>
     </div>
 
     <script>
         const API_URL = 'https://wash-client.vercel.app/api/modules';
-        let isConnected = false;
+        let modules = [];
 
-        const autoSprintToggle = document.getElementById('autoSprintToggle');
-        const statusText = document.getElementById('statusText');
-        const statusDot = document.getElementById('statusDot');
-        const connectionText = document.getElementById('connectionText');
-        const lastUpdate = document.getElementById('lastUpdate');
-
-        // Update connection status display
-        function updateConnectionStatus(connected) {
-            isConnected = connected;
-            if (connected) {
-                statusDot.classList.add('connected');
-                connectionText.textContent = 'Connected to API';
-                connectionText.style.color = '#10b981';
-            } else {
-                statusDot.classList.remove('connected');
-                connectionText.textContent = 'Disconnected';
-                connectionText.style.color = '#ef4444';
-            }
-        }
-
-        // Fetch current module state
-        async function fetchModuleState() {
+        // Fetch and display modules
+        async function fetchModules() {
             try {
-                const response = await fetch(`${API_URL}?module=autoSprint`);
+                const response = await fetch(API_URL);
                 if (!response.ok) throw new Error('API request failed');
                 
                 const data = await response.json();
-                autoSprintToggle.checked = data.enabled;
-                statusText.textContent = `AutoSprint: ${data.enabled ? 'ON' : 'OFF'}`;
-                statusText.className = `status ${data.enabled ? 'connected' : 'disconnected'}`;
+                modules = data.modules || [];
                 
-                updateConnectionStatus(true);
-                updateTimestamp();
+                updateUI();
+                updateStatus(true);
                 
-                return data.enabled;
             } catch (error) {
-                console.error('Failed to fetch module state:', error);
-                updateConnectionStatus(false);
-                return false;
+                console.error('Failed to fetch modules:', error);
+                updateStatus(false);
             }
         }
 
-        // Toggle module state
+        // Update the UI with modules
+        function updateUI() {
+            const categories = {};
+            
+            // Group modules by category
+            modules.forEach(module => {
+                if (!categories[module.category]) {
+                    categories[module.category] = [];
+                }
+                categories[module.category].push(module);
+            });
+
+            // Render categories
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+
+            Object.keys(categories).forEach(categoryName => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.textContent = categoryName;
+                categoryDiv.appendChild(header);
+
+                categories[categoryName].forEach(module => {
+                    const moduleDiv = createModuleElement(module);
+                    categoryDiv.appendChild(moduleDiv);
+                });
+
+                container.appendChild(categoryDiv);
+            });
+
+            // Update stats
+            const activeCount = modules.filter(m => m.enabled).length;
+            document.getElementById('activeCount').textContent = activeCount;
+            document.getElementById('totalCount').textContent = modules.length;
+        }
+
+        // Create module element
+        function createModuleElement(module) {
+            const div = document.createElement('div');
+            div.className = 'module';
+
+            const header = document.createElement('div');
+            header.className = 'module-header';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'module-name';
+            nameSpan.textContent = module.name;
+
+            const rightSide = document.createElement('div');
+            rightSide.style.display = 'flex';
+            rightSide.style.alignItems = 'center';
+            rightSide.style.gap = '10px';
+
+            // Settings expand icon
+            if (module.settings && module.settings.length > 0) {
+                const expandIcon = document.createElement('span');
+                expandIcon.className = 'expand-icon';
+                expandIcon.textContent = '▼';
+                expandIcon.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleSettings(module.name);
+                };
+                rightSide.appendChild(expandIcon);
+            }
+
+            // Toggle switch
+            const toggle = document.createElement('label');
+            toggle.className = 'toggle-switch';
+            
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = module.enabled;
+            input.onchange = () => toggleModule(module.name, input.checked);
+            
+            const slider = document.createElement('span');
+            slider.className = 'slider';
+            
+            toggle.appendChild(input);
+            toggle.appendChild(slider);
+            rightSide.appendChild(toggle);
+
+            header.appendChild(nameSpan);
+            header.appendChild(rightSide);
+            div.appendChild(header);
+
+            // Settings section
+            if (module.settings && module.settings.length > 0) {
+                const settingsDiv = document.createElement('div');
+                settingsDiv.className = 'module-settings';
+                settingsDiv.id = `settings-${module.name}`;
+
+                module.settings.forEach(setting => {
+                    const settingDiv = createSettingElement(setting, module.name);
+                    settingsDiv.appendChild(settingDiv);
+                });
+
+                div.appendChild(settingsDiv);
+            }
+
+            return div;
+        }
+
+        // Create setting element
+        function createSettingElement(setting, moduleName) {
+            const div = document.createElement('div');
+            div.className = 'setting';
+
+            const name = document.createElement('div');
+            name.className = 'setting-name';
+            name.textContent = setting.name;
+            div.appendChild(name);
+
+            const control = document.createElement('div');
+            control.className = 'setting-control';
+
+            if (setting.type === 'number') {
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.className = 'setting-slider';
+                slider.min = setting.value.min || 0;
+                slider.max = setting.value.max || 100;
+                slider.value = setting.value.value || 0;
+                slider.step = 0.1;
+
+                const valueSpan = document.createElement('span');
+                valueSpan.className = 'setting-value';
+                valueSpan.textContent = slider.value;
+
+                slider.oninput = () => {
+                    valueSpan.textContent = slider.value;
+                    updateSetting(moduleName, setting.name, parseFloat(slider.value));
+                };
+
+                control.appendChild(slider);
+                control.appendChild(valueSpan);
+            } else if (setting.type === 'boolean') {
+                const toggle = document.createElement('label');
+                toggle.className = 'toggle-switch';
+                
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.checked = setting.value;
+                input.onchange = () => updateSetting(moduleName, setting.name, input.checked);
+                
+                const slider = document.createElement('span');
+                slider.className = 'slider';
+                
+                toggle.appendChild(input);
+                toggle.appendChild(slider);
+                control.appendChild(toggle);
+            }
+
+            div.appendChild(control);
+            return div;
+        }
+
+        // Toggle settings visibility
+        function toggleSettings(moduleName) {
+            const settingsDiv = document.getElementById(`settings-${moduleName}`);
+            const icon = settingsDiv.previousElementSibling.querySelector('.expand-icon');
+            
+            settingsDiv.classList.toggle('expanded');
+            icon.classList.toggle('rotated');
+        }
+
+        // Toggle module
         async function toggleModule(moduleName, enabled) {
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        module: moduleName,
-                        enabled: enabled
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ module: moduleName, enabled })
                 });
 
-                if (!response.ok) throw new Error('Failed to toggle module');
+                if (!response.ok) throw new Error('Toggle failed');
                 
-                const data = await response.json();
-                statusText.textContent = data.message;
-                statusText.className = `status ${enabled ? 'connected' : 'disconnected'}`;
+                const module = modules.find(m => m.name === moduleName);
+                if (module) module.enabled = enabled;
                 
-                updateConnectionStatus(true);
-                updateTimestamp();
+                updateUI();
+                console.log(`${moduleName} ${enabled ? 'enabled' : 'disabled'}`);
                 
-                console.log('Module toggled:', data);
             } catch (error) {
                 console.error('Failed to toggle module:', error);
-                // Revert toggle on failure
-                autoSprintToggle.checked = !enabled;
-                updateConnectionStatus(false);
             }
         }
 
-        // Update timestamp
-        function updateTimestamp() {
-            const now = new Date();
-            lastUpdate.textContent = now.toLocaleTimeString();
+        // Update setting
+        async function updateSetting(moduleName, settingName, value) {
+            const module = modules.find(m => m.name === moduleName);
+            if (!module) return;
+
+            const setting = module.settings.find(s => s.name === settingName);
+            if (!setting) return;
+
+            setting.value = value;
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        module: moduleName,
+                        settings: module.settings
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to update setting:', error);
+            }
         }
 
-        // Event listener for toggle
-        autoSprintToggle.addEventListener('change', (e) => {
-            toggleModule('autoSprint', e.target.checked);
-        });
+        // Update connection status
+        function updateStatus(connected) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (connected) {
+                dot.classList.add('connected');
+                text.textContent = 'Connected';
+            } else {
+                dot.classList.remove('connected');
+                text.textContent = 'Disconnected';
+            }
+        }
 
-        // Initial fetch
-        fetchModuleState();
+        // Initial load
+        fetchModules();
 
-        // Poll for updates every 5 seconds
-        setInterval(fetchModuleState, 5000);
+        // Poll for updates every 3 seconds
+        setInterval(fetchModules, 3000);
     </script>
 </body>
 </html>
