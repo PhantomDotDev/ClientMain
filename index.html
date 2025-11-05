@@ -227,29 +227,28 @@
         // Fetch current module state
         async function fetchModuleState() {
             try {
-                const response = await fetch(`${API_URL}?module=autoSprint`);
-                if (!response.ok) throw new Error('API request failed');
-
-                const response2 = await fetch(`${API_URL}?module=flight`);
-                if (!response2.ok) throw new Error('API request failed');
-                
-                const data = await response.json();
-                autoSprintToggle.checked = data.enabled;
-                statusText.textContent = `AutoSprint: ${data.enabled ? 'ON' : 'OFF'}`;
-                flightToggle.checked = data.enabled;
-                statusText.textContent = `flight: ${data.enabled ? 'ON' : 'OFF'}`;
-                statusText.className = `status ${data.enabled ? 'connected' : 'disconnected'}`;
-                
+                const autoRes = await fetch(`${API_URL}?module=autoSprint`);
+                const flightRes = await fetch(`${API_URL}?module=flight`);
+        
+                if (!autoRes.ok || !flightRes.ok) throw new Error('API request failed');
+        
+                const autoData = await autoRes.json();
+                const flightData = await flightRes.json();
+        
+                autoSprintToggle.checked = autoData.enabled;
+                flightToggle.checked = flightData.enabled;
+        
+                statusText.textContent = 
+                    `AutoSprint: ${autoData.enabled ? 'ON' : 'OFF'} | Flight: ${flightData.enabled ? 'ON' : 'OFF'}`;
+        
                 updateConnectionStatus(true);
                 updateTimestamp();
-                
-                return data.enabled;
             } catch (error) {
                 console.error('Failed to fetch module state:', error);
                 updateConnectionStatus(false);
-                return false;
             }
         }
+
 
         // Toggle module state
         async function toggleModule(moduleName, enabled) {
