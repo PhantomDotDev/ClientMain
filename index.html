@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wash Client</title>
+    <title>Minecraft Client Control</title>
     <style>
         * {
             margin: 0;
@@ -12,75 +12,211 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            color: #fff;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
+            background: rgba(30, 30, 50, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 10px;
+            color: #fff;
             font-size: 28px;
+            font-weight: 700;
         }
 
-        .status {
-            color: #666;
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 30px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .status-dot.connected {
+            animation-name: pulseGreen;
+        }
+
+        @keyframes pulseGreen {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .status-text {
             font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
         }
 
-        .status.connected {
-            color: #10b981;
+        .stats {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
         }
 
-        .status.disconnected {
-            color: #ef4444;
+        .module-grid {
+            display: grid;
+            gap: 15px;
         }
 
         .module {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .module:hover::before {
+            opacity: 1;
         }
 
         .module:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .module.active {
+            border-color: rgba(102, 126, 234, 0.8);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .module-info {
+            flex: 1;
+            z-index: 1;
         }
 
         .module-info h3 {
-            color: #333;
-            margin-bottom: 5px;
+            color: #fff;
+            margin-bottom: 6px;
             font-size: 18px;
+            font-weight: 600;
         }
 
         .module-info p {
-            color: #666;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 14px;
+        }
+
+        .module-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(102, 126, 234, 0.2);
+            border-radius: 6px;
+            font-size: 11px;
+            margin-top: 8px;
+            color: #667eea;
         }
 
         .toggle-switch {
             position: relative;
-            width: 60px;
-            height: 34px;
+            width: 64px;
+            height: 36px;
+            z-index: 1;
         }
 
         .toggle-switch input {
@@ -96,152 +232,211 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: .3s;
+            border-radius: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
+            height: 28px;
+            width: 28px;
+            left: 3px;
+            bottom: 3px;
+            background: linear-gradient(135deg, #fff, #f0f0f0);
+            transition: .3s;
             border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         input:checked + .slider {
-            background-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
         }
 
         input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ef4444;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.connected {
-            background: #10b981;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
+            transform: translateX(28px);
+            background: #fff;
         }
 
         .footer {
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            color: #666;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.5);
             font-size: 12px;
+        }
+
+        .update-time {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .error-banner {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #ef4444;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-banner.show {
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎮 Minecraft Client</h1>
-        <p class="status" id="statusText">Connecting to API...</p>
+        <div class="header">
+            <div class="logo">🎮</div>
+            <div>
+                <h1>Client Control</h1>
+            </div>
+        </div>
+
+        <div class="error-banner" id="errorBanner">
+            Connection lost. Retrying...
+        </div>
         
         <div class="connection-status">
-            <div class="status-dot" id="statusDot"></div>
-            <span id="connectionText">Checking connection...</span>
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span class="status-text" id="connectionText">Connecting...</span>
+            </div>
+            <div class="stats">
+                <span>⚡ <span id="latency">--</span>ms</span>
+            </div>
         </div>
 
-        <div class="module">
-            <div class="module-info">
-                <h3>Auto Sprint</h3>
-                <p>Automatically sprint when moving</p>
+        <div class="module-grid">
+            <div class="module" id="module-autoSprint">
+                <div class="module-info">
+                    <h3>Auto Sprint</h3>
+                    <p>Automatically sprint when moving forward</p>
+                    <span class="module-badge">Movement</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoSprintToggle">
+                    <span class="slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="autoSprintToggle">
-                <span class="slider"></span>
-            </label>
-        </div>
 
-        <div class="module">
-            <div class="module-info">
-                <h3>Flight</h3>
-                <p>Flight!</p>
+            <div class="module" id="module-flight">
+                <div class="module-info">
+                    <h3>Flight</h3>
+                    <p>Enable creative-mode flight</p>
+                    <span class="module-badge">Movement</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="flightToggle">
+                    <span class="slider"></span>
+                </label>
             </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="flightToggle">
-                <span class="slider"></span>
-            </label>
+
+            <div class="module" id="module-reach">
+                <div class="module-info">
+                    <h3>Reach</h3>
+                    <p>Extended block reach distance</p>
+                    <span class="module-badge">Combat</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="reachToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
         <div class="footer">
-            Private controlled project • Last updated: <span id="lastUpdate">Never</span>
+            <div class="update-time">
+                <span>⏱️ Last sync:</span>
+                <span id="lastUpdate">Never</span>
+            </div>
+            <button class="refresh-btn" onclick="forceRefresh()">↻ Refresh</button>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://wash-client.vercel.app/api/modules';
         let isConnected = false;
+        let lastRequestTime = 0;
 
-        const autoSprintToggle = document.getElementById('autoSprintToggle');
-        const flightToggle = document.getElementById('flightToggle');
-        const statusText = document.getElementById('statusText');
+        const modules = {
+            autoSprint: document.getElementById('autoSprintToggle'),
+            flight: document.getElementById('flightToggle'),
+            reach: document.getElementById('reachToggle')
+        };
+
         const statusDot = document.getElementById('statusDot');
         const connectionText = document.getElementById('connectionText');
+        const latencySpan = document.getElementById('latency');
         const lastUpdate = document.getElementById('lastUpdate');
+        const errorBanner = document.getElementById('errorBanner');
 
-        // Update connection status display
-        function updateConnectionStatus(connected) {
+        function updateConnectionStatus(connected, latency = null) {
             isConnected = connected;
             if (connected) {
                 statusDot.classList.add('connected');
-                connectionText.textContent = 'Connected to API';
-                connectionText.style.color = '#10b981';
+                connectionText.textContent = 'Connected to server';
+                errorBanner.classList.remove('show');
+                if (latency !== null) {
+                    latencySpan.textContent = latency;
+                }
             } else {
                 statusDot.classList.remove('connected');
                 connectionText.textContent = 'Disconnected';
-                connectionText.style.color = '#ef4444';
+                latencySpan.textContent = '--';
+                errorBanner.classList.add('show');
             }
         }
 
-        // Fetch current module state
         async function fetchModuleState() {
+            const startTime = Date.now();
             try {
-                const autoRes = await fetch(`${API_URL}?module=autoSprint`);
-                const flightRes = await fetch(`${API_URL}?module=flight`);
-        
-                if (!autoRes.ok || !flightRes.ok) throw new Error('API request failed');
-        
-                const autoData = await autoRes.json();
-                const flightData = await flightRes.json();
-        
-                autoSprintToggle.checked = autoData.enabled;
-                flightToggle.checked = flightData.enabled;
-        
-                statusText.textContent = 
-                    `AutoSprint: ${autoData.enabled ? 'ON' : 'OFF'} | Flight: ${flightData.enabled ? 'ON' : 'OFF'}`;
-        
-                updateConnectionStatus(true);
+                const requests = Object.keys(modules).map(module =>
+                    fetch(`${API_URL}?module=${module}`).then(res => res.json())
+                );
+                
+                const results = await Promise.all(requests);
+                const latency = Date.now() - startTime;
+                
+                results.forEach(data => {
+                    if (modules[data.module]) {
+                        modules[data.module].checked = data.enabled;
+                        const moduleEl = document.getElementById(`module-${data.module}`);
+                        if (data.enabled) {
+                            moduleEl.classList.add('active');
+                        } else {
+                            moduleEl.classList.remove('active');
+                        }
+                    }
+                });
+
+                updateConnectionStatus(true, latency);
                 updateTimestamp();
             } catch (error) {
                 console.error('Failed to fetch module state:', error);
@@ -249,59 +444,55 @@
             }
         }
 
-
-        // Toggle module state
         async function toggleModule(moduleName, enabled) {
+            const startTime = Date.now();
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        module: moduleName,
-                        enabled: enabled
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ module: moduleName, enabled })
                 });
 
                 if (!response.ok) throw new Error('Failed to toggle module');
                 
                 const data = await response.json();
-                statusText.textContent = data.message;
-                statusText.className = `status ${enabled ? 'connected' : 'disconnected'}`;
+                const latency = Date.now() - startTime;
                 
-                updateConnectionStatus(true);
+                const moduleEl = document.getElementById(`module-${moduleName}`);
+                if (enabled) {
+                    moduleEl.classList.add('active');
+                } else {
+                    moduleEl.classList.remove('active');
+                }
+                
+                updateConnectionStatus(true, latency);
                 updateTimestamp();
                 
                 console.log('Module toggled:', data);
             } catch (error) {
                 console.error('Failed to toggle module:', error);
-                // Revert toggle on failure
-                autoSprintToggle.checked = !enabled;
+                modules[moduleName].checked = !enabled;
                 updateConnectionStatus(false);
             }
         }
 
-        // Update timestamp
         function updateTimestamp() {
             const now = new Date();
             lastUpdate.textContent = now.toLocaleTimeString();
         }
 
-        // Event listener for toggle
-        autoSprintToggle.addEventListener('change', (e) => {
-            toggleModule('autoSprint', e.target.checked);
+        function forceRefresh() {
+            fetchModuleState();
+        }
+
+        Object.keys(modules).forEach(moduleName => {
+            modules[moduleName].addEventListener('change', (e) => {
+                toggleModule(moduleName, e.target.checked);
+            });
         });
 
-        flightToggle.addEventListener('change', (e) => {
-            toggleModule('flight', e.target.checked);
-        });
-
-        // Initial fetch
         fetchModuleState();
-
-        // Poll for updates every 5 seconds
-        setInterval(fetchModuleState, 5000);
+        setInterval(fetchModuleState, 3000);
     </script>
 </body>
 </html>
